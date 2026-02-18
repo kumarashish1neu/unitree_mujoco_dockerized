@@ -1,0 +1,44 @@
+services:
+  unitree-mujoco:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: unitree-mujoco:latest
+    container_name: unitree_mujoco_g1
+    stdin_open: true
+    tty: true
+    environment:
+      # X11 Display
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - ROBOT=${ROBOT:-g1}
+      - DOMAIN_ID=${DOMAIN_ID:-1}
+      - INTERFACE=${INTERFACE:-lo}
+      - ROBOT_SCENE=/workspace/unitree_mujoco/unitree_robots/${ROBOT:-g1}/scene.xml
+      - USE_JOYSTICK=${USE_JOYSTICK:-0}
+      - JOYSTICK_TYPE=${JOYSTICK_TYPE:-xbox}
+      - JOYSTICK_DEVICE=${JOYSTICK_DEVICE:-0}
+      - PRINT_SCENE_INFORMATION=${PRINT_SCENE_INFORMATION:-true}
+      - ENABLE_ELASTIC_BAND=${ENABLE_ELASTIC_BAND:-false}
+      - MUJOCO_HOME=/opt/mujoco
+      - MUJOCO_MODEL_DEFAULT=/opt/mujoco/model/humanoid/humanoid.xml
+      - LD_LIBRARY_PATH=/opt/mujoco/bin:/usr/local/lib:/usr/lib
+    
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./unitree_mujoco/unitree_robots:/workspace/unitree_mujoco/unitree_robots:ro
+      - ./mujoco_ws:/workspace/mujoco_ws:rw
+      - ./output:/workspace/output:rw
+      - ./data:/workspace/data:rw
+    
+    ipc: host
+    # Uncomment below if you need network access for DDS communication
+    # network_mode: host
+  
+    entrypoint: ["/usr/local/bin/entrypoint/g1_entrypoint.sh"]
+    command:
+      - "/workspace/mujoco_ws/unitree_g1_controller/g1_left_arm_random_cycle.py"
+      - "--interface"
+      - "${INTERFACE:-lo}"
+      - "--domain-id"
+      - "${DOMAIN_ID:-1}"
