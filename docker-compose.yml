@@ -37,8 +37,13 @@ services:
   
     entrypoint: ["/usr/local/bin/entrypoint/g1_entrypoint.sh"]
     command:
-      - "/workspace/mujoco_ws/unitree_g1_controller/g1_left_arm_random_cycle.py"
+      - "/workspace/unitree_sdk2_python/example/g1/high_level/g1_loco_client_example.py"
       - "--interface"
       - "${INTERFACE:-lo}"
       - "--domain-id"
       - "${DOMAIN_ID:-1}"
+      - "--auto-option"
+      - "7"
+      - "--period"
+      - "1.0"
+      - "--no-confirm"
