@@ -1,5 +1,6 @@
 import time
 import sys
+import argparse
 from unitree_sdk2py.core.channel import ChannelSubscriber, ChannelFactoryInitialize
 from unitree_sdk2py.idl.default import unitree_go_msg_dds__SportModeState_
 from unitree_sdk2py.idl.unitree_go.msg.dds_ import SportModeState_
@@ -57,15 +58,54 @@ class UserInterface:
 
         print("No matching test option found.")
 
+def run_option(sport_client: LocoClient, option_id: int):
+    if option_id == 0:
+        sport_client.Damp()
+    elif option_id == 1:
+        sport_client.Damp()
+        time.sleep(0.5)
+        sport_client.Squat2StandUp()
+    elif option_id == 2:
+        sport_client.StandUp2Squat()
+    elif option_id == 3:
+        sport_client.Move(0.3,0,0)
+    elif option_id == 4:
+        sport_client.Move(0,0.3,0)
+    elif option_id == 5:
+        sport_client.Move(0,0,0.3)
+    elif option_id == 6:
+        sport_client.LowStand()
+    elif option_id == 7:
+        sport_client.HighStand()
+    elif option_id == 8:
+        sport_client.ZeroTorque()
+    elif option_id == 9:
+        sport_client.WaveHand()
+    elif option_id == 10:
+        sport_client.WaveHand(True)
+    elif option_id == 11:
+        sport_client.ShakeHand()
+        time.sleep(3)
+        sport_client.ShakeHand()
+    elif option_id == 12:
+        sport_client.Damp()
+        time.sleep(0.5)
+        sport_client.Lie2StandUp()
+
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print(f"Usage: python3 {sys.argv[0]} networkInterface")
-        sys.exit(-1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--interface", type=str, default="lo")
+    parser.add_argument("--domain-id", type=int, default=0)
+    parser.add_argument("--auto-option", type=int, default=None, help="Run option id in loop (non-interactive)")
+    parser.add_argument("--period", type=float, default=2.0, help="Auto option period in seconds")
+    parser.add_argument("--no-confirm", action="store_true", help="Skip Enter prompt")
+    args = parser.parse_args()
 
     print("WARNING: Please ensure there are no obstacles around the robot while running this example.")
-    input("Press Enter to continue...")
+    if not args.no_confirm:
+        input("Press Enter to continue...")
 
-    ChannelFactoryInitialize(0, sys.argv[1])
+    ChannelFactoryInitialize(args.domain_id, args.interface)
 
     test_option = TestOption(name=None, id=None) 
     user_interface = UserInterface()
@@ -75,43 +115,17 @@ if __name__ == "__main__":
     sport_client.SetTimeout(10.0)
     sport_client.Init()
 
+    if args.auto_option is not None:
+        print(f"Auto mode: option id {args.auto_option}, period {args.period}s")
+        while True:
+            run_option(sport_client, args.auto_option)
+            time.sleep(args.period)
+
     print("Input \"list\" to list all test option ...")
     while True:
         user_interface.terminal_handle()
 
         print(f"Updated Test Option: Name = {test_option.name}, ID = {test_option.id}")
-
-        if test_option.id == 0:
-            sport_client.Damp()
-        elif test_option.id == 1:
-            sport_client.Damp()
-            time.sleep(0.5)
-            sport_client.Squat2StandUp()
-        elif test_option.id == 2:
-            sport_client.StandUp2Squat()
-        elif test_option.id == 3:
-            sport_client.Move(0.3,0,0)
-        elif test_option.id == 4:
-            sport_client.Move(0,0.3,0)
-        elif test_option.id == 5:
-            sport_client.Move(0,0,0.3)
-        elif test_option.id == 6:
-            sport_client.LowStand()
-        elif test_option.id == 7:
-            sport_client.HighStand()
-        elif test_option.id == 8:
-            sport_client.ZeroTorque()
-        elif test_option.id == 9:
-            sport_client.WaveHand()
-        elif test_option.id == 10:
-            sport_client.WaveHand(True)
-        elif test_option.id == 11:
-            sport_client.ShakeHand()
-            time.sleep(3)
-            sport_client.ShakeHand()
-        elif test_option.id == 12:
-            sport_client.Damp()
-            time.sleep(0.5)
-            sport_client.Lie2StandUp() # When using the Lie2StandUp function, ensure that the robot faces up and the ground is hard, flat and rough.
+        run_option(sport_client, test_option.id)
 
         time.sleep(1)
