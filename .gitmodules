@@ -4,3 +4,12 @@
 [submodule "unitree_sdk2_python"]
 	path = unitree_sdk2_python
 	url = https://github.com/kumarashish1neu/unitree_sdk2_python.git
+[submodule "unitree_sdk2"]
+	path = unitree_sdk2
+	url = https://github.com/unitreerobotics/unitree_sdk2.git
+[submodule "unitree_rl_mjlab"]
+	path = unitree_rl_mjlab
+	url = https://github.com/unitreerobotics/unitree_rl_mjlab.git
+[submodule "unitree_ros"]
+	path = unitree_ros
+	url = https://github.com/unitreerobotics/unitree_ros.git

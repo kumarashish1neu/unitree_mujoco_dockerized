@@ -1,8 +1,8 @@
 services:
   unitree-mujoco:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: unitree_mujoco_dockerized/Dockerfile
     image: unitree-mujoco:latest
     container_name: unitree_mujoco_g1
     stdin_open: true
@@ -12,7 +12,7 @@ services:
       - DISPLAY=${DISPLAY}
       - QT_X11_NO_MITSHM=1
       - ROBOT=${ROBOT:-g1}
-      - DOMAIN_ID=${DOMAIN_ID:-1}
+      - DOMAIN_ID=${DOMAIN_ID:-0}
       - INTERFACE=${INTERFACE:-lo}
       - ROBOT_SCENE=/workspace/unitree_mujoco/unitree_robots/${ROBOT:-g1}/scene.xml
       - USE_JOYSTICK=${USE_JOYSTICK:-0}
@@ -20,6 +20,10 @@ services:
       - JOYSTICK_DEVICE=${JOYSTICK_DEVICE:-0}
       - PRINT_SCENE_INFORMATION=${PRINT_SCENE_INFORMATION:-true}
       - ENABLE_ELASTIC_BAND=${ENABLE_ELASTIC_BAND:-false}
+      - ENABLE_G1_KINEMATICS=${ENABLE_G1_KINEMATICS:-1}
+      - KINEMATICS_CMD=${KINEMATICS_CMD:-python3 /workspace/mujoco_ws/unitree_g1_kinematics/g1_kinematics_process.py}
+      - KINEMATICS_URDF=${KINEMATICS_URDF:-}
+      - KINEMATICS_PERIOD_SEC=${KINEMATICS_PERIOD_SEC:-1.0}
       - MUJOCO_HOME=/opt/mujoco
       - MUJOCO_MODEL_DEFAULT=/opt/mujoco/model/humanoid/humanoid.xml
       - LD_LIBRARY_PATH=/opt/mujoco/bin:/usr/local/lib:/usr/lib
@@ -30,6 +34,7 @@ services:
       - ./mujoco_ws:/workspace/mujoco_ws:rw
       - ./output:/workspace/output:rw
       - ./data:/workspace/data:rw
+      - ./checkpoints:/workspace/checkpoints:ro
     
     ipc: host
     # Uncomment below if you need network access for DDS communication
@@ -37,13 +42,12 @@ services:
   
     entrypoint: ["/usr/local/bin/entrypoint/g1_entrypoint.sh"]
     command:
-      - "/workspace/unitree_sdk2_python/example/g1/high_level/g1_loco_client_example.py"
+      - "/workspace/mujoco_ws/unitree_g1_controller/g1_left_arm_random_cycle.py"
+      - "--rlmjlab-root"
+      - "/opt/unitree_rl_mjlab"
       - "--interface"
       - "${INTERFACE:-lo}"
       - "--domain-id"
-      - "${DOMAIN_ID:-1}"
-      - "--auto-option"
-      - "7"
-      - "--period"
-      - "1.0"
-      - "--no-confirm"
+      - "${DOMAIN_ID:-0}"
+      - "--start-state"
+      - "Velocity"
